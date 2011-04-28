@@ -1,30 +1,37 @@
 var express = require('express'),
     io      = require('socket.io'),
     fs      = require('fs'),
-    mustache= require('./lib/mustache.js'),
+    sass    = require('sass'),
+    jade    = require('jade'),
     mongoose= require('mongoose'),
     Topic   = require('./models/topic.js'),
     Session = require('./models/session.js'),
     User    = require('./models/user.js'),
-    auth    = require('./middle/auth.js'),
-    _       = require('underscore');
+    Auth    = require('./middle/auth.js'),
+    auth    = Auth.auth,
+    _       = require('underscore'),
+    log     = require('./public/js/log');
 
 mongoose.connect('localhost', 'grid', '3001');
 
 var app = express.createServer();
 
 app.configure(function(){
-    app.use(express.cookieParser());
-    app.use(express.static(__dirname + '/public'));
-    app.use(auth.auth);
-    
+    app.set('view options',{layout: false});
     app.set('views', __dirname + '/views');
-    app.set('view options', {layout: false});
-    app.register('html', mustache);
+    app.register('html', jade);
+    
+    app.use(express.static(__dirname + '/public'));
+    app.use(express.cookieParser());
+    app.use(auth);
 }) 
 
+app.get('/topics', Auth.requireAuth, function(req, res){
+    res.send('lol');
+});
+
 app.get('/', function(req, res){
-    auth.login(req, res, 'jmoyers@gmail.com', 'fake');
+    Auth.login(req, res, 'jmoyers@gmail.com', 'fake');
     
     Topic.find(function(err, docs){
         var topics = _(docs).map(function(doc){
@@ -32,9 +39,7 @@ app.get('/', function(req, res){
         });
         
         res.render('main.html', {
-            locals: {
-                topics_top: topics
-            }
+            locals:{topics:topics}
         });
     });
 });

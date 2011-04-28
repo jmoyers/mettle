@@ -1,6 +1,14 @@
 var Session = require('../models/session'),
     User    = require('../models/user');
 
+function requireAuth(req, res, next){
+    if (req.user) {
+        next();
+    } else {
+        res.send('You must log in to access this resource',403);
+    }
+}
+
 function auth(req, res, next){
     var sid = req.cookies['grid_auth'] || false;
         
@@ -13,9 +21,9 @@ function auth(req, res, next){
         Session.findOne({sid: sid}, function(err, session){
             req.session = session || false;
 
-            if (session) {
-                req.user = User.findOne({_id: session.uid});
-            }
+            req.user = (session) 
+                ? User.findOne({_id: session.uid})
+                : false;
 
             next(); 
         });
@@ -26,7 +34,6 @@ function login(req, res, email, password){
     if( req.user ) return req.user;
     User.findOne({email: email}, function(err, user){
         if (user.checkPassword(password)) {
-            console.log('password ' + password + ' is a match');
             session     = Session.createSession(user);
             req.session = session;
             req.user    = user;

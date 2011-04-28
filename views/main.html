@@ -1,39 +1,127 @@
-<html>
-    <head>
-        <script src="socket.io/socket.io.js"></script> 
-        <script type="text/javascript">
-         var socket = new io.Socket('localhost'); 
-         socket.connect();
-         
-         socket.on('connect', function(){
-             console.log( 'connected' );
-         });
-         
-         socket.on('message', function(data){
-             console.log('message');
-             console.log(data);
-         });
-         
-         socket.on('disconnect', function(){
-             console.log('disconnected')
-         });
-         
-        </script>
-    </head>
-    <body>
-        {{#topics_top}}
-            <div style="border: 2px solid gray; padding: 20px">
-                <h1>{{title}}</h1>
-                <p>{{body}}</p>
-                <p>By: {{author}}</p>
-                <div style="padding-left: 20px;">
-                    {{#topics}}
-                        <h2>{{title}}</h2>
-                        <p>{{body}}</p>
-                        <p>By: {{author}}</p>
-                    {{/topics}}
-                </div>
-            </div>
-        {{/topics_top}}
-    </body>
-</html>
+!!! 5
+html
+    head
+        link(rel='stylesheet', type='text/css', href='js/jquery/ui/css/redmond/jquery-ui-1.8.12.custom.css')
+        
+        :stylus
+            gradient(start-col, end-col)
+                background: -webkit-linear-gradient(start-col, end-col);
+                background: -moz-linear-gradient(start-col,  end-col);
+                
+            border-radius(args...)
+                -moz-border-radius      args
+                -webkit-border-radius   args
+        
+            shadow(args...)
+                -moz-box-shadow     args
+                -webkit-box-shadow  args
+                box-shadow          args            
+
+            topic-width     = 300px
+            topic-height    = 300px
+            topic-margin    = 10px
+            topic-border    = 2px
+            topic-overall   = topic-width + (topic-margin*2) + (topic-border*2)
+            
+            body
+                color               white
+                background-color    white
+            
+            .content
+                margin  0 auto
+                width   topic-overall * 4
+                
+            #search-container
+                margin      0 auto
+                width       300px
+                text-align  center
+                
+            #search
+                display             none
+                width               300px
+                padding             7px
+            
+            #topics
+                list-style          none
+                padding             0
+                margin              0
+            
+            .topic
+                margin              topic-margin
+                border              topic-border solid #203852
+                width               topic-width
+                height              topic-height
+                float               left
+
+                border-radius(5px)
+                shadow(5px 5px 5px #4C493E)
+                gradient(#B9BFC8, #203852)
+                
+            .topic.selected
+                background          white
+                color               black
+                
+            .topic-placeholder
+                margin              topic-margin
+                border              2px dotted #A5D3F8
+                width               topic-width
+                height              topic-height
+                float               left
+                background-color    white
+                border-radius       (5px)
+                
+            .topic h1
+                margin          0
+                width           topic-width
+                height          topic-height
+                line-height     topic-height
+                text-align      center
+                font-size       45px
+                font-family     Helvetica
+                letter-spacing  3px
+                                
+            .clear
+                clear: both
+                
+        script(src='js/socket.io/support/socket.io-client/socket.io.js')
+        script(src='js/jquery/jquery.js')
+        script(src='js/jquery/ui/js/jquery-ui-1.8.12.custom.min.js')
+        script(src='js/keys.js')
+        script(src='js/keynav.js')
+        script(src='js/log.js')
+        
+        script
+            var socket = new io.Socket('localhost'); 
+
+            socket.connect();
+
+            socket.on('connect', function(){
+                console.log( 'connected' );
+            });
+
+            socket.on('message', function(data){
+                console.log('message');
+                console.log(data);
+            });
+
+            socket.on('disconnect', function(){
+                console.log('disconnected')
+            });
+            
+            $(document).ready(function(){
+                $('#topics')
+                    .sortable({
+                        placeholder: 'topic-placeholder'
+                    })
+                    .disableSelection();
+                
+            })
+    body
+        div.content
+            div#search-container
+                input#search(type='text')
+            ul#topics
+                - each topic, index in topics
+                    li.topic
+                        h1 #{topic.title}
+                div.clear
