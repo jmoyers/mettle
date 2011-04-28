@@ -26,8 +26,14 @@ app.configure(function(){
     app.use(auth);
 }) 
 
-app.get('/topics', Auth.requireAuth, function(req, res){
-    res.send('lol');
+app.get('/api/v1/topics', function(req, res){
+    Topic.find(function(err, docs){
+        var topics = _(docs).map(function(doc){
+            return doc.doc;
+        });
+        
+        res.send(JSON.stringify(topics));
+    });
 });
 
 app.get('/', function(req, res){

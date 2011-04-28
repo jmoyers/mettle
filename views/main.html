@@ -58,8 +58,7 @@ html
                 gradient(#B9BFC8, #203852)
                 
             .topic.selected
-                background          white
-                color               black
+                border              2px solid orange
                 
             .topic-placeholder
                 margin              topic-margin
@@ -85,10 +84,16 @@ html
                 
         script(src='js/socket.io/support/socket.io-client/socket.io.js')
         script(src='js/jquery/jquery.js')
+        script(src='js/underscore.js')
         script(src='js/jquery/ui/js/jquery-ui-1.8.12.custom.min.js')
         script(src='js/keys.js')
-        script(src='js/keynav.js')
         script(src='js/log.js')
+        script(src='js/util.js')
+        script(src='js/uuid/uuid.js')
+        script(src='js/event.js')
+        script(src='js/eventobject.js')
+        script(src='js/topic.js')
+        script(src='js/grid.js')
         
         script
             var socket = new io.Socket('localhost'); 
@@ -111,7 +116,8 @@ html
             $(document).ready(function(){
                 $('#topics')
                     .sortable({
-                        placeholder: 'topic-placeholder'
+                          placeholder : 'topic-placeholder'
+                        , distance    : 200
                     })
                     .disableSelection();
                 
@@ -122,6 +128,6 @@ html
                 input#search(type='text')
             ul#topics
                 - each topic, index in topics
-                    li.topic
+                    li(id='' + topic._id, class='topic')
                         h1 #{topic.title}
                 div.clear
