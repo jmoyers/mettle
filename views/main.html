@@ -11,7 +11,17 @@ html
     script(src='js/events.js')
     
     script
-      var socket = new io.Socket('localhost'); 
+      var chat_t = _.template(
+      "<div class='chat-block chat-identity'>" +
+        "<div class='chat-time'>{time}</div>" +
+        "<div class='chat-name'>{name}</div>" + 
+        "<div class='chat-message'>{message}</div>" + 
+      "</div><div class='clear'></div>"
+      );
+      
+      app = new EventEmitter();
+      
+      var socket = new io.Socket('10.1.10.133'); 
 
       socket.connect();
 
@@ -20,29 +30,100 @@ html
       });
 
       socket.on('message', function(m){
-        if (!m.type) {
-          return;
-        }
-
-        socket.emit(m.type, m);
+        if (!m.type) return;
+        app.emit(m.type, m);
       });
       
-      socket.on('chat', function(m){
-        $('#chat').append(m.data);
-      })
-
       socket.on('disconnect', function(){
         console.log('disconnected')
       });
+      
+      app.on('chat', function(m){
+        console.log(m);
+        
+        var view = $('#chat-content');
+        
+        view
+          .append(chat_t({
+            time    : nice_time(m.data.time),
+            name    : m.data.from,
+            message : m.data.message
+          }))
+          .attr('scrollTop', view.attr('scrollHeight'));
+      })
+      
+      function sendChat(chat){
+        var event = {
+          type  : 'chat',
+          data  : { 
+            message : chat,
+            time    : new Date() 
+          }
+        };
+
+        socket.send(event);
+
+        event.data['from'] = 'Me';
+        
+        app.emit('chat', event)
+      }
+      
+      $(document).ready(function(){
+        $('#chat-input').keypress(function(e){
+          var chat = this;
+          if (e.keyCode == KEYS.enter) {
+            sendChat($(chat).val());
+            $(chat).val('').blur();
+            setTimeout(function(){
+              $(chat).focus();
+            },0);
+          }
+        });
+      });
     style
     :stylus
+      .clear
+        clear both
+      .chat-block
+        margin 3px
+        margin-bottom 8px
+        padding 5px
+        -webkit-border-radius 3px
+        -webkit-box-shadow 0px 2px 6px rgba(0,0,0,0.6)
+      .chat-time
+        float right
+        font-size 12px
+      .chat-name
+        font-weight bold
+        margin-right 8px
+        margin-left 8px
+        -webkit-user-select none
+        float left
+      .chat-message
+        margin-right 10px
+        margin-left 13px
       #chat
         border 2px solid gray
-        height 200px;
-        width: 100%
+        background-color gray
+        height 220px;
+        width 1000px
         position absolute
         bottom 0px
+        padding 10px
+      #chat-content
+        padding 10px
+        background-color white
+        height 170px
+        border 2px solid gray
+        overflow-y scroll
+        overflow-x hidden
+      #chat-input
+        border 2px solid gray
+        margin-top 5px
+        height 30px
+        width 992px
   body
     div.content
     div#chat
-      test
+      div#chat-content
+      textarea#chat-input

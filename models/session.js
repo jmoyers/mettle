@@ -1,7 +1,7 @@
 var mongoose  = require('mongoose'),
-  Schema    = mongoose.Schema,
-  ObjectId  = Schema.ObjectId,
-  uuid    = require('node-uuid');
+  Schema      = mongoose.Schema,
+  ObjectId    = Schema.ObjectId,
+  uuid        = require('node-uuid');
   
 var Session = new Schema({
     uid       : ObjectId

@@ -12,9 +12,22 @@ var express = require('express'),
   log     = winston.log,
   info    = winston.info,
   bad     = console.log,
-  async   = require('async');
+  async   = require('async'),
+  Model   = require('./models/model.js');
+  
+var m = new Model({
+  a: 'fart'
+});
+
+m.on('change', function(set){
+  console.log("changed ", set);
+});
+
+console.log('a ' + m.a);
+m.a = 'lowl';
   
 var parseCookie = function(str){
+  if(!str) return {};
   var obj = {}
     , pairs = str.split(/[;,] */);
   for (var i = 0, len = pairs.length; i < len; ++i) {
@@ -55,7 +68,7 @@ app.get('/',function(req,res){
 
 app.listen(3000);
 
-var socket = io.listen(app); 
+var socket = io.listen(app, '10.1.10.133'); 
 
 var clients = {};
 
@@ -126,10 +139,12 @@ socket.on('connection', function(client){
     _(clients).chain()
       .select(function(c){
         return c.session._id != sid;
-      }), function(c){
-        c.send(m);
-      });
-    });
+      })
+      .each(function(c){
+        c.send(_.extend(m,{
+          from: client._sid
+        }));
+      })
   })
   
   client.on('disconnect', function(){
