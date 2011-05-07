@@ -1,5 +1,5 @@
 function Topic(options){
-    EventObject.call(this, arguments);
+    EventEmitter.call(this, arguments);
     
     _.extend(this, {
           author    : false
@@ -15,7 +15,7 @@ function Topic(options){
     if (this.sel) this.bind();
 }
 
-inherits(Topic, EventObject);
+inherits(Topic, EventEmitter);
 
 Topic.prototype.bind = function(){
     var self = this;

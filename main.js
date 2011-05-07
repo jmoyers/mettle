@@ -1,67 +1,142 @@
 var express = require('express'),
-    io      = require('socket.io'),
-    fs      = require('fs'),
-    sass    = require('sass'),
-    jade    = require('jade'),
-    mongoose= require('mongoose'),
-    Topic   = require('./models/topic.js'),
-    Session = require('./models/session.js'),
-    User    = require('./models/user.js'),
-    Auth    = require('./middle/auth.js'),
-    auth    = Auth.auth,
-    _       = require('underscore'),
-    log     = require('./public/js/log');
+  io      = require('socket.io'),
+  fs      = require('fs'),
+  mongoose= require('mongoose'),
+  jade    = require('jade'),
+  Auth    = require('./middle/auth.js'),
+  User    = require('./models/user.js'),
+  Session = require('./models/session.js'),
+  auth    = Auth.auth,
+  _       = require('underscore'),
+  winston = require('winston'),
+  log     = winston.log,
+  info    = winston.info,
+  bad     = console.log,
+  async   = require('async');
+  
+var parseCookie = function(str){
+  var obj = {}
+    , pairs = str.split(/[;,] */);
+  for (var i = 0, len = pairs.length; i < len; ++i) {
+    var pair = pairs[i]
+      , eqlIndex = pair.indexOf('=')
+      , key = pair.substr(0, eqlIndex).trim().toLowerCase()
+      , val = pair.substr(++eqlIndex, pair.length).trim();
+
+    // Quoted values
+    if (val[0] === '"') {
+      val = val.slice(1, -1);
+    }
+
+    // Only assign once
+    if (obj[key] === undefined) {
+      obj[key] = decodeURIComponent(val.replace(/\+/g, ' '));
+    }
+  }
+  return obj;
+};
 
 mongoose.connect('localhost', 'grid', '3001');
 
 var app = express.createServer();
 
 app.configure(function(){
-    app.set('view options',{layout: false});
-    app.set('views', __dirname + '/views');
-    app.register('html', jade);
-    
-    app.use(express.static(__dirname + '/public'));
-    app.use(express.cookieParser());
-    app.use(auth);
-}) 
-
-app.get('/api/v1/topics', function(req, res){
-    Topic.find(function(err, docs){
-        var topics = _(docs).map(function(doc){
-            return doc.doc;
-        });
-        
-        res.send(JSON.stringify(topics));
-    });
+  app.set('view engine', jade);
+  app.set('view options', {layout: false});
+  app.register('html', jade);
+  app.use(express.static(__dirname + '/public'));
+  app.use(express.cookieParser());
+  app.use(auth);
 });
 
-app.get('/', function(req, res){
-    Auth.login(req, res, 'jmoyers@gmail.com', 'fake');
-    
-    Topic.find(function(err, docs){
-        var topics = _(docs).map(function(doc){
-            return doc.doc;
-        });
-        
-        res.render('main.html', {
-            locals:{topics:topics}
-        });
-    });
+app.get('/',function(req,res){
+  res.render('main.html');
 });
 
 app.listen(3000);
 
 var socket = io.listen(app); 
 
-clients = []
+var clients = {};
 
 socket.on('connection', function(client){
-    client.on('message', function(data){
-        console.log(data);
-    });
+  var cookies = parseCookie(client.request.headers.cookie),
+    sid       = cookies['mud'],
+    session   = client.session = false;
+      
+  async.series({
+    establishSession: function(cb){
+      if (!sid) {
+        info('Session does not exists, creating new');
+        session = client.session = Session.createSession();
+        return cb();
+      }
+
+      info('Looking up session for ' + sid);
+      Session.findOne({_id:sid}, function(err, doc){
+        info('Session found ' + sid);
+        session = client.session = doc;
+
+        info('Refreshing session');
+        session.heartbeat();
+        return cb();
+      });
+    },
+    addClient: function(cb){
+      if (clients[client.session._id]) {
+        return cb();
+      } else {
+        info('Adding client');    
+        clients[client.session._id] = client;
+        return cb();
+      }
+    },
+    notifyClient: function(cb){
+      info('Notifying client of app session id');
+
+      sid = session._id;
+
+      client.send({
+        type  : 'session',
+        data  : {mud: session._id}
+      });
+
+      info('Current ' + Object.keys(clients).length + ' clients connected');
+      return cb();
+    }
+  });
+  
+  client.on('message', function(m){
+    session.heartbeat();
     
-    client.on('disconnect', function(){
-        console.log('client disconnected');
+    if (!m.type) {
+      info('Invalid message from client ' + sid + ', discarding');
+      return;
+    }
+    
+    client.emit(m.type, m);
+  });
+  
+  client.on('update', function(m){
+    info('update request', m);
+  });
+  
+  client.on('chat', function(m){
+    info('chat message', m);
+    _(clients).chain()
+      .select(function(c){
+        return c.session._id != sid;
+      }), function(c){
+        c.send(m);
+      });
     });
+  })
+  
+  client.on('disconnect', function(){
+    if (clients[client.session._id]) {
+      delete clients[client.session._id];
+    } 
+    
+    info('Client disconnected ' + (client.session?client.session._id:'(no session)'));
+  });
 });
