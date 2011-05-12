@@ -13,20 +13,9 @@ var express = require('express'),
   info    = winston.info,
   bad     = console.log,
   async   = require('async'),
-  Model   = require('./models/model.js');
-  
-var m = new Model({
-  a: 'fart'
-});
-
-m.on('change', function(set){
-  console.log("changed ", set);
-});
-
-console.log('a ' + m.a);
-m.a = 'lowl';
-  
-var parseCookie = function(str){
+  Controller = require('./models/controller.js');
+    
+function parseCookie(str){
   if(!str) return {};
   var obj = {}
     , pairs = str.split(/[;,] */);
@@ -58,6 +47,7 @@ app.configure(function(){
   app.set('view options', {layout: false});
   app.register('html', jade);
   app.use(express.static(__dirname + '/public'));
+  app.use(express.static(__dirname + '/models'));
   app.use(express.cookieParser());
   app.use(auth);
 });
@@ -70,7 +60,7 @@ app.listen(3000);
 
 var socket = io.listen(app, '10.1.10.133'); 
 
-var clients = {};
+var users = {}
 
 socket.on('connection', function(client){
   var cookies = parseCookie(client.request.headers.cookie),
@@ -100,7 +90,10 @@ socket.on('connection', function(client){
         return cb();
       } else {
         info('Adding client');    
-        clients[client.session._id] = client;
+        users[client.session._id] = new User({
+          client: client,
+          name  : 'Josh'
+        });
         return cb();
       }
     },
