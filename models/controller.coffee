@@ -6,18 +6,15 @@ class Controller extends Model
   constructor: (attribs) ->
     super attribs
     
-    @bindings or= {}
+    @bus or= {}
 
-    _.each @bindings, (event, key)=>
-      console.log key, event
-      @on(key, event)
-      
+    _.each @bus, (fn, event)=>
+      @on(event, fn)
+            
   on: (type, fn) ->
     fn or= ()->
     
-    console.log type
     type = @parse type
-    console.log type, ''
     
     if not tobind = @attribs[type.attr]
       return
