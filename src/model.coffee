@@ -17,6 +17,8 @@ class Model extends EventEmitter
       @attribs['id'] = uuid()
     
     @attribs = extend(@attribs, attribs)
+
+    @tracked or= []
     @track keys(@attribs)
     
     # all and targetted middleware
@@ -55,6 +57,7 @@ class Model extends EventEmitter
       keys = []
     
     _.each keys, (key) =>
+      @tracked.push(key)
       @__defineGetter__ key, () =>
         @get(key)
       @__defineSetter__ key, (val) =>
@@ -133,7 +136,7 @@ class Model extends EventEmitter
     commit = (attribs, cb)=>
       _.each attribs, (v, k)=>
         # Lets track this key if we're not already
-        if not @attribs[k]?
+        if not k in @tracked
           @track(k)
 
         @attribs[k] = v

@@ -23,7 +23,7 @@ build = (cb)->
     log 'Compiled src', bold
     -- op or cb()
 
-  exec "rm test/*.js & coffee -c test", (err, stdout)->
+  exec "rm test/*.js & rm -rf lib-cov & coffee -c test", (err, stdout)->
     onerror err
     log 'Compiled tests', bold
     -- op or cb()
@@ -31,7 +31,7 @@ build = (cb)->
 
 test = (cb)->
   log 'Running tests', bold
-  exec "expresso --include lib", (err, stdout, stderr)->
+  exec "expresso --include lib -c", (err, stdout, stderr)->
     log 'Finished tests', bold
     onerror err
     log stdout
