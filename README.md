@@ -69,7 +69,6 @@ Change events - generic/property specific
 
       person.on('name.change', function(val){
         // Any time the name property changes, we get access to its value here
-        // middleware has been applied at this point
         console.log('a new name was committed: ', val)
       });
       
@@ -79,12 +78,12 @@ Output
 
     attributes after middleware applied (change event):
     { id: '40c4d5f3-5937-422e-b1de-8ed03faf9584',
-      name: 'Yolanda',
+      name: 'yolanda',
       location: 'sf',
       phone: 'phone',
       status: '&lt;a href=&quot;twitter.com/joshuamoyers&quot;&gt;My Twitter&lt;/a&gt;' }
 
-    a new name was committed:  Yolanda
+    a new name was committed:  yolanda
     
 Long form setter and multi-set (one change event)
 -----------    
