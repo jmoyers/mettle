@@ -10,9 +10,14 @@ m = new Model({
 
 dump = (label)->
   return (attribs, cb)->
+    cb or= ()->
     console.log '===' + label + '==='
     console.log attribs
     cb(attribs)
+    
+m.on('change', dump('general change'))
+m.on('test.change', dump('test changed'))
+m.on('num.change', dump('num changed'))
 
 # dump attributes being set
 m.use dump('start middleware')
@@ -32,7 +37,7 @@ m.use dump('end middlware')
   
 # use fire and forget setters
 m.test  = '<some>sweet</html>'
-m.num   = '000150'
+m.num   = '0123'
 
 # use setters with a callback that gives output after mw
 m.set('test', 'this is indeed a <a href="test">test</a>', (attribs)->
