@@ -19,15 +19,14 @@ class Model extends EventEmitter
     @attribs = extend(@attribs, attribs)
     @track keys(@attribs)
     
-    # all, server, client middlewares
+    # all and targetted middleware
     @middleware or= []
-    @filtered or= {}
     
     # empty in base class, used in conjuction with
     # @use to set up validation and such like express
     @configure
     
-  configue: ()->
+  configure: ()->
         
   use: (attr, fn) -> 
     if typeof attr == 'function'
@@ -74,13 +73,10 @@ class Model extends EventEmitter
       return m.fn
     )
     
-    _.each middle, (m)->
-      #console.log m.toString()
-          
     # now we normalize the callbacks in the middlware list to conform
     # to either function(val) or function(attributes hash). we're going
     # to drop the err from async
-    return (attribs, cb)->
+    return (attribs, cb)=>
       if typeof attribs == 'function'
         cb = attribs
         attribs = initialData
@@ -89,11 +85,10 @@ class Model extends EventEmitter
         cb(null, attribs)
       
       # favor simplicity and drop err from function signature
-      middle = _.map middle, (m)->
-        return (attribs, cb)->
-          m(attribs, (attribs)->
-            cb(null, attribs)
-          )
+      middle = _.map middle, (m)=>
+        return (attribs, cb)=>
+          m.call @, attribs, (attribs)->
+            cb null, attribs
       
       # since the first callback only receives one param (the cb)
       # in async.waterfall, we're going to take over the first position
@@ -132,16 +127,10 @@ class Model extends EventEmitter
         
     _oldcb = cb
     
-    console.log _oldcb.toString()
-    
     cb = (err, attribs)=>
-      _oldcb @json()
-      
-    console.log cb.toString()
+      _oldcb.call @, @json()
       
     commit = (attribs, cb)=>
-      console.log 'commit: ', arguments
-      
       _.each attribs, (v, k)=>
         # Lets track this key if we're not already
         if not @attribs[k]?
@@ -159,8 +148,7 @@ class Model extends EventEmitter
           @emit type, v        
 
       cb(null, attribs)
-      
-      
+    
     async.waterfall([
       @filterMiddleware(attribs),
       commit
