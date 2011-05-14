@@ -57,7 +57,9 @@ Output:
       phone: 'phone',
       status: '&lt;a href=&quot;twitter.com/joshuamoyers&quot;&gt;My Twitter&lt;/a&gt;' }
 
-Change events - generic/property specific      
+Change events - generic/property specific
+----------
+
       // generic property change events
       person.on('change', function(attribs){
         console.log('attributes after middleware applied (change event):');
