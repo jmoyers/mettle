@@ -1,9 +1,7 @@
 Controller= require('controller')
 Model     = require('model')
 should    = require('should')
-$         = require('jquery');
-
-process.setMaxListeners(20)
+$         = require('jquery')
 
 josh = new Model({
   name    : 'Joshua Moyers',
@@ -13,12 +11,12 @@ josh = new Model({
 
 # Set up test jquery div to pump events through
 reset = '''
-  <div id='view'>
-    <div class='name'>Josh</div>
-    <div class='phone'>555-565-5555</div>
-    <div class='age'>24</div>
-  </div>
-  '''
+        <div id='view'>
+          <input class='name' value='' type='text'></input>
+          <input class='phone' value='' type='text'></input>
+          <input class='age' value='' type='text'></input>
+        </div>
+        '''
 
 $('body').html(reset);
 
@@ -37,6 +35,56 @@ module.exports =
     
     beforeEnd ()->
       i.should.equal(1)
+      
+  'bad view selector': (beforeEnd)->
+    c = new Controller
+      view : {}
+    
+    c.on 'view.selector.click'
+      
+  'jquery "attrib.event" delegate': (beforeEnd)->
+    c = new Controller
+      nameView : $('#view').find('.name')
+    
+    typing  = 'Howdy'
+    len     = typing.length
+    i       = 0
+    
+    
+    c.on 'nameView.keypress', (e)->
+      $(this).val().should.equal(typing.substr(0, i))
+    
+    while len-- > 0
+      # trigger keypress doesn't cause the value to update
+      char = typing.charAt(i++)
+      c.nameView.val c.nameView.val()+char
+      c.nameView.trigger
+        type  : 'keypress', 
+        which : char.charCodeAt(0)
+        
+    beforeEnd ()->
+      i.should.equal(typing.length)
+      
+  'sub-property event delegation': (beforeEnd)->
+    m1 = new Model
+    m2 = new Model
+      m3: 'test'
+    m1.set('m2', m2)
+    c = new Controller
+      m1: m1
+    i = 0
+    
+    c.on 'm1.m2.change', (attribs)->
+      i++
+    
+    beforeEnd ()->
+      i.should.equal(1)
+  
+  'non-existent selector': ()->
+    c = new Controller
+    
+    c.on 'non', ()->
+      
   
   'jquery "attrib.selector.event" delegate': (beforeEnd)->
     c = new Controller 

@@ -31,7 +31,7 @@ build = (cb)->
 
 test = (cb)->
   log 'Running tests', bold
-  exec "expresso --include lib -c", (err, stdout, stderr)->
+  exec "expresso -i lib -c", (err, stdout, stderr)->
     log 'Finished tests', bold
     onerror err
     log stdout

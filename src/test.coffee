@@ -1,12 +1,8 @@
-$           = require('jquery')
-Controller  = require('./').Controller
+coffee  = require('coffee-script')
+test    = require('../test/test-controller.coffee')['jquery "attrib.event" delegate']
 
-$('<div id="test"></div>').appendTo('body')
+console.log 'starting test'
 
-c = new Controller(test: $('body'))
-i = 0
+test()
 
-c.on 'test #test click', (e)->
-  console.log i++
-
-$('#test').trigger('click')
+console.log 'test over'
