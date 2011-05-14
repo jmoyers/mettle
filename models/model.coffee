@@ -1,16 +1,55 @@
 if not window?
   EventEmitter  = require('events').EventEmitter
   _             = require('underscore')
+  uuid          = require('node-uuid')
+  server        = yes
+  async         = require('async')
 
-extend  = _.extend
-keys    = Object.keys
+extend              = _.extend
+keys                = Object.keys
 
 class Model extends EventEmitter
   constructor: (attribs) ->
     attribs or= {}
     @attribs or= {}
+    
+    if not @attribs['id']?
+      @attribs['id'] = uuid()
+    
     @attribs = extend(@attribs, attribs)
     @track keys(@attribs)
+    
+    # all, server, client middlewares
+    @middleware or= []
+    @filtered or= {}
+    
+    # empty in base class, used in conjuction with
+    # @use to set up validation and such like express
+    @configure
+    
+  configue: ()->
+        
+  use: (attr, fn) -> 
+    if typeof attr == 'function'
+      fn    = attr
+      attr  = 'any'
+    
+    # Modify callback signature so that it takes a value
+    # and can modify it on the return cb, for targetted mw
+    if attr != 'any'
+      _oldfn = fn
+      fn = (attribs, cb)->
+        _oldfn(attribs[attr], (val)->
+          attribs[attr]=val
+          cb(attribs)
+        )
+    
+    m = 
+      type: attr
+      fn  : fn
+    
+    (@middleware or= []).push(m)
+      
     
   track: (keys) ->
     if not typeof keys == Array
@@ -23,20 +62,117 @@ class Model extends EventEmitter
         @set(key, val)
     
     return @
-          
-  set: (key, val, quiet) ->
-    @attribs[key] = val
-    if not quiet
-      # general, idempotent
-      @emit 'change', @attribs
 
-      # more targetted
-      type = key + '.change'
-      @emit type, val
+  filterMiddleware: (initialData) ->
+    targets = []
+    
+    targets = keys(initialData)
+    
+    middle = _(@middleware).select((m)->
+      return m.type == 'any' or m.type in targets
+    ).map((m)->
+      return m.fn
+    )
+    
+    _.each middle, (m)->
+      #console.log m.toString()
+          
+    # now we normalize the callbacks in the middlware list to conform
+    # to either function(val) or function(attributes hash). we're going
+    # to drop the err from async
+    return (attribs, cb)->
+      if typeof attribs == 'function'
+        cb = attribs
+        attribs = initialData
+        
+      if not middle
+        cb(null, attribs)
+      
+      # favor simplicity and drop err from function signature
+      middle = _.map middle, (m)->
+        return (attribs, cb)->
+          m(attribs, (attribs)->
+            cb(null, attribs)
+          )
+      
+      # since the first callback only receives one param (the cb)
+      # in async.waterfall, we're going to take over the first position
+      # and normalize so that all take (attributes, cb) -- the first param
+      # is null because async.waterfall expects an err object there
+      middle = [(cb)->
+        cb(null, attribs)
+      ].concat(middle)
+      
+      async.waterfall(middle, cb)
+   
+  ###      
+  Set will either accept arguments in either of these formats
+
+  1. set({key1:val1, key2:val2}, quiet)
+  2. set(key, val, quiet)
+  
+  You want to use (1) to set multiple properties on a single pass
+  because 'saving' is implicit, and thus will cause the changes
+  to be sent up to the server in bulk with socket.io transport
+  ###
+  set: () ->
+    attribs = key = val = quiet = false
+    if typeof arguments[0] != 'object'
+      [key, val, quiet, cb] = arguments
+      attribs = {}
+      attribs[key] = val
+    else
+      [attribs, quiet, cb] = arguments
+        
+    if typeof quiet == 'function'
+      cb    = quiet
+      quiet = false
+    
+    cb or= ()->
+        
+    _oldcb = cb
+    
+    console.log _oldcb.toString()
+    
+    cb = (err, attribs)=>
+      _oldcb @json()
+      
+    console.log cb.toString()
+      
+    commit = (attribs, cb)=>
+      console.log 'commit: ', arguments
+      
+      _.each attribs, (v, k)=>
+        # Lets track this key if we're not already
+        if not @attribs[k]?
+          @track(k)
+
+        @attribs[k] = v
+      
+      if not quiet
+        # general, idempotent
+        @emit 'change', @attribs
+
+        # more targetted
+        _.each attribs, (v, k)=>
+          type = k + '.change'
+          @emit type, v        
+
+      cb(null, attribs)
+      
+      
+    async.waterfall([
+      @filterMiddleware(attribs),
+      commit
+    ],cb)
+        
     return @
       
   get: (key) ->
     return @attribs[key]
+  
+  json: ()->
+    return @attribs
     
 if not window?
   module.exports = Model

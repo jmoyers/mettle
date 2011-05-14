@@ -1,14 +1,18 @@
 if not window?
   _             = require('underscore')
-  Model         = require('./model')
-  
-class Controller extends Model
-  constructor: (attribs) ->
-    super attribs
-    
-    @bus or= {}
+  EventEmitter  = require('events').EventEmitter
 
-    _.each @bus, (fn, event)=>
+extend = _.extend
+  
+class Controller extends EventEmitter
+  constructor: (attribs) ->
+    attribs or= {}
+    @events or= {}
+    
+    _.each attribs, (val, key)=>
+      @[key] = val
+    
+    _.each @events, (fn, event)=>
       @on(event, fn)
             
   on: (type, fn) ->
@@ -16,12 +20,12 @@ class Controller extends Model
     
     type = @parse type
     
-    if not tobind = @attribs[type.attr]
+    if not tobind = @[type.attr]
       return
     
     if type.qual && tobind.find?
       tobind = tobind.find(type.qual)
-    else if type.qual and @attribs[type.attr][type.qual]?
+    else if type.qual and @[type.attr][type.qual]?
       type.event = type.qual + '.' + type.event
     
     @binder(tobind) type.event, fn
@@ -40,9 +44,9 @@ class Controller extends Model
         
   parse: (str) ->
     EVENT = ///
-      ^([^\x20.]+)                # attribute
-      (?:[\x20.])?(.+)?          # further qualifier/selector (optional)
-      (?:[\x20.])([^\x20.]+)$    # event
+      ^([^\x20.]+)            # attribute
+      (?:[\x20.])?(.+)?       # further qualifier/selector (optional)
+      (?:[\x20.])([^\x20.]+)$ # event
     ///
     
     [match, attr, qual, event] = EVENT.exec(str) || ['','','','']

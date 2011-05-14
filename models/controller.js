@@ -1,5 +1,5 @@
 (function() {
-  var Controller, Model, _;
+  var Controller, EventEmitter, extend, _;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -10,30 +10,31 @@
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   if (!(typeof window !== "undefined" && window !== null)) {
     _ = require('underscore');
-    Model = require('./model');
+    EventEmitter = require('events').EventEmitter;
   }
+  extend = _.extend;
   Controller = (function() {
-    __extends(Controller, Model);
+    __extends(Controller, EventEmitter);
     function Controller(attribs) {
-      Controller.__super__.constructor.call(this, attribs);
-      this.bindings || (this.bindings = {});
-      _.each(this.bindings, __bind(function(event, key) {
-        console.log(key, event);
-        return this.on(key, event);
+      attribs || (attribs = {});
+      this.events || (this.events = {});
+      _.each(attribs, __bind(function(val, key) {
+        return this[key] = val;
+      }, this));
+      _.each(this.events, __bind(function(fn, event) {
+        return this.on(event, fn);
       }, this));
     }
     Controller.prototype.on = function(type, fn) {
       var tobind;
       fn || (fn = function() {});
-      console.log(type);
       type = this.parse(type);
-      console.log(type, '');
-      if (!(tobind = this.attribs[type.attr])) {
+      if (!(tobind = this[type.attr])) {
         return;
       }
       if (type.qual && (tobind.find != null)) {
         tobind = tobind.find(type.qual);
-      } else if (type.qual && (this.attribs[type.attr][type.qual] != null)) {
+      } else if (type.qual && (this[type.attr][type.qual] != null)) {
         type.event = type.qual + '.' + type.event;
       }
       this.binder(tobind)(type.event, fn);
