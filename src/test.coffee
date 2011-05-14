@@ -1,8 +1,8 @@
-Model = require('../lib/model')
+$ = require('jquery')
 
-josh = new Model({
-  test:'josh'
-})
+$('<div id="test"></div>').appendTo('body')
 
-josh.set('test2', 'lol')
-josh.test = 'lol2'
+$('#test').click ()->
+  console.log('test');
+
+$('#test').trigger('click')
