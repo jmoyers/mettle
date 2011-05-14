@@ -53,9 +53,6 @@ class Model extends EventEmitter
       
     
   track: (keys) ->
-    if not typeof keys == Array
-      keys = []
-    
     _.each keys, (key) =>
       @tracked.push(key)
       @__defineGetter__ key, () =>
@@ -84,9 +81,6 @@ class Model extends EventEmitter
         cb = attribs
         attribs = initialData
         
-      if not middle
-        cb(null, attribs)
-      
       # favor simplicity and drop err from function signature
       middle = _.map middle, (m)=>
         return (attribs, cb)=>
@@ -135,9 +129,10 @@ class Model extends EventEmitter
       
     commit = (attribs, cb)=>
       _.each attribs, (v, k)=>
+        console.log 'commit loop'
         # Lets track this key if we're not already
-        if not k in @tracked
-          @track(k)
+        if k not in @tracked
+          @track([k])
 
         @attribs[k] = v
       
