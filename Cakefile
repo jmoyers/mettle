@@ -17,18 +17,26 @@ onerror = (err) ->
 
 build = (cb)->
   log 'Building', bold
-  exec "rm -rf lib && coffee -c -l -b -o lib src", (err, stdout)->
+  op = 2
+  exec "rm -rf lib & coffee -c -l -b -o lib src", (err, stdout)->
     onerror err
-    log 'Compiled', bold
-    cb()
+    log 'Compiled src', bold
+    -- op or cb()
+
+  exec "rm test/*.js & coffee -c test", (err, stdout)->
+    onerror err
+    log 'Compiled tests', bold
+    -- op or cb()
+    
 
 test = (cb)->
-  log 'Running lib/test.js', bold
-  exec "node lib/test.js", (err, stdout)->
+  log 'Running tests', bold
+  exec "expresso --include lib", (err, stdout, stderr)->
+    log 'Finished tests', bold
     onerror err
-    log ''
-    log ''
     log stdout
+    log stderr
+    
     
 
 

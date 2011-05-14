@@ -49,7 +49,7 @@ class Controller extends EventEmitter
       (?:[\x20.])([^\x20.]+)$ # event
     ///
     
-    [match, attr, qual, event] = EVENT.exec(str) || ['','','','']
+    [match, attr, qual, event] = EVENT.exec(str) or ['','','','']
     
     return {
       attr  : attr
