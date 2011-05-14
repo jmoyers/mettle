@@ -64,22 +64,7 @@ module.exports =
         
     beforeEnd ()->
       i.should.equal(typing.length)
-      
-  'sub-property event delegation': (beforeEnd)->
-    m1 = new Model
-    m2 = new Model
-      m3: 'test'
-    m1.set('m2', m2)
-    c = new Controller
-      m1: m1
-    i = 0
-    
-    c.on 'm1.m2.change', (attribs)->
-      i++
-    
-    beforeEnd ()->
-      i.should.equal(1)
-  
+        
   'non-existent selector': ()->
     c = new Controller
     

@@ -25,14 +25,9 @@ class Controller extends EventEmitter
       
     if type.qual && tobind.find?
       tobind = tobind.find(type.qual)
-    else if type.qual and @[type.attr][type.qual]?
-      type.event = type.qual + '.' + type.event
     
     @binder(tobind) type.event, fn
     super type, fn
-    
-  bind: (o,f)->
-    return f.apply(o)
     
   binder: (o) ->
     binder = ['on', 'bind'];
