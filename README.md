@@ -76,6 +76,7 @@ Change events - generic/property specific
       person.name = 'Yolanda';
 
 Output
+
     attributes after middleware applied (change event):
     { id: '40c4d5f3-5937-422e-b1de-8ed03faf9584',
       name: 'Yolanda',
