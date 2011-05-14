@@ -94,14 +94,37 @@ Long form setter and multi-set (one change event)
       console.log(attributes);
       console.log('')
     });
+    
+    // Order:
+    // 1. html entity encode name
+    // 2. name lowercased
+    // 3. property change committed
+    // 4. 'change' event fired
+    // 5. 'name.change' event fired
+    // 6. Long form setter callback fired
 
     // Multi set (one change event fired)
     person.set({
       name  : 'Joshua',
       status: 'Hmmmm'
     })
-
+    
+    // Order:
+    // 1. html entity encode name, status
+    // 2. name lowercased
+    // 3. property change committed
+    // 4. 'change' event fired
+    // 5. 'name.change' event fired
+    // 6. 'status.change' event fired
+    
 Output:
+
+    attributes after middleware applied (change event):
+    { id: '40c4d5f3-5937-422e-b1de-8ed03faf9584',
+      name: 'joshua moyers',
+      location: 'sf',
+      phone: 'phone',
+      status: '&lt;a href=&quot;twitter.com/joshuamoyers&quot;&gt;My Twitter&lt;/a&gt;' }
 
     long form setter callback:
     { id: '40c4d5f3-5937-422e-b1de-8ed03faf9584',
