@@ -50,6 +50,7 @@ Ordered middleware - generic/property specific
     // person.name will be 'josh'
 
 Output:
+
     { id: '40c4d5f3-5937-422e-b1de-8ed03faf9584',
       name: 'josh',
       location: 'sf',
