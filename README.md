@@ -1,6 +1,7 @@
 Model
 ===========
 
+Setup, generated id, arbitrary property tracking
 ------
     var mettle    = require('../'),
         Model     = mettle.Model,
@@ -23,6 +24,7 @@ Model
 
 ----------
     my automatically assigned id:  40c4d5f3-5937-422e-b1de-8ed03faf9584
+Ordered middleware to plug into property changes, generic change events, specific property change events, fire and forget setters
 ----------
     // generic ordered middleware
     person.use(function(attribs, cb){
@@ -58,6 +60,7 @@ Model
       location: 'sf',
       phone: 'phone',
       status: '&lt;a href=&quot;twitter.com/joshuamoyers&quot;&gt;My Twitter&lt;/a&gt;' }
+Property specific middleware (nice for validation, escaping)
 ---------
     // property specific middleware
     person.use('name', function(val, cb){
@@ -76,6 +79,7 @@ Model
       status: '&lt;a href=&quot;twitter.com/joshuamoyers&quot;&gt;My Twitter&lt;/a&gt;' }
 
     a new name was committed:  josh
+Long form setters with callback (after middleware applied, events fired), multi-set (one change event)
 -----------    
     person.set('name', 'joshua Moyers', function(attributes){
       // All middleware has been applied, change events have been fired
