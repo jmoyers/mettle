@@ -14,7 +14,7 @@ class Model extends EventEmitter
     @attribs or= {}
     
     if not @attribs['id']?
-      @attribs['id'] = uuid()
+      @attribs['id'] = uuid().toLowerCase()
     
     @attribs = extend(@attribs, attribs)
 
@@ -144,7 +144,7 @@ class Model extends EventEmitter
           type = k + '.change'
           @emit type, v        
 
-      cb(null, attribs)
+      cb(null, @attribs)
     
     async.waterfall([
       @filterMiddleware(attribs),
