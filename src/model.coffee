@@ -129,7 +129,6 @@ class Model extends EventEmitter
       
     commit = (attribs, cb)=>
       _.each attribs, (v, k)=>
-        console.log 'commit loop'
         # Lets track this key if we're not already
         if k not in @tracked
           @track([k])

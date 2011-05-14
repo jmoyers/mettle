@@ -22,7 +22,7 @@ class Controller extends EventEmitter
     
     if not tobind = @[type.attr]
       return
-    
+      
     if type.qual && tobind.find?
       tobind = tobind.find(type.qual)
     else if type.qual and @[type.attr][type.qual]?

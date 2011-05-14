@@ -12,34 +12,50 @@ josh = new Model({
 })
 
 # Set up test jquery div to pump events through
-$("<div id='test'></div>").appendTo("body");
+reset = '''
+  <div id='view'>
+    <div class='name'>Josh</div>
+    <div class='phone'>555-565-5555</div>
+    <div class='age'>24</div>
+  </div>
+  '''
+
+$('body').html(reset);
 
 module.exports = 
   'event delegation': (beforeEnd)->
-    c = new Controller(model:new Model(josh.json()))
+    p = new Model(josh.json())
+    c = new Controller(person: p)
     i = 0
     
-    c.on 'model.change', (attribs)->
+    c.on 'person.change', (attribs)->
       attribs.should.have.property('name', 'Joshua Moyers')
       attribs.should.have.property('age', 52)
       i++
     
-    c.model.age = 52
+    c.person.age = 52
     
     beforeEnd ()->
       i.should.equal(1)
   
-  'attribute selector event': (beforeEnd)->
-    c = new Controller(view:$)
-    y = 0
+  'jquery "attrib.selector.event" delegate': (beforeEnd)->
+    c = new Controller 
+      view : $('#view')
+      
+    x = xx = 0
     
-    c.on 'view.#test.click', (attribs)->
-      y++
+    c.on 'view..name.click', (e)->
+      x++
     
-    $('#test').trigger('click')
+    c.on 'view .name click', (e)->
+      xx++
+      
+    
+    c.view.find('.name').click();
             
     beforeEnd ()->
-      y.should.equal(1)
+      x.should.equal(1)
+      xx.should.equal(1)
     
       
       

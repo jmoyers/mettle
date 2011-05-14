@@ -23,9 +23,9 @@ build = (cb)->
     log 'Compiled src', bold
     -- op or cb()
 
-  exec "rm test/*.js & rm -rf lib-cov & coffee -c test", (err, stdout)->
+  exec "rm test/*.js & rm -rf lib-cov", (err, stdout)->
     onerror err
-    log 'Compiled tests', bold
+    log 'Reset tests', bold
     -- op or cb()
     
 
