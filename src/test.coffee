@@ -1,8 +1,4 @@
 coffee  = require('coffee-script')
-test    = require('../test/test-controller.coffee')['jquery "attrib.event" delegate']
+test    = require('../test/test-socket.coffee')
 
-console.log 'starting test'
-
-test()
-
-console.log 'test over'
+test['client receives updates from server']()
