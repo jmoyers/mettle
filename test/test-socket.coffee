@@ -1,5 +1,5 @@
 Model     = require('../lib/model')
-createLink= require('../lib/link').createLink
+link      = require('../lib/link').link
 should    = require('should')
 io        = require('socket.io')
 http      = require('http')
@@ -76,14 +76,14 @@ module.exports =
     server_socket = io.listen(server)
     
     server_socket.on 'connection', (client)->
-      createLink(server_model, client)
+      link(server_model, client)
       
       id = setInterval(()->
         server_model.name = changes[--send]
         send or clearTimeout(id)
       ,1000)    
     
-    createLink(client_model, client)
+    link(client_model, client)
     
     before ()->
       send.should.equal(0)

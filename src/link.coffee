@@ -1,6 +1,6 @@
 _ = require('underscore')
 
-module.exports.createLink = (model, socket)->
+module.exports.link = (model, socket)->
   # prevent cyclic change events
   curr = {}
   

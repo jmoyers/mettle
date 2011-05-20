@@ -30,14 +30,10 @@ build = (cb)->
     
 test = (cb)->
   log 'Running tests', bold
-  exec "expresso -i lib -c", (err, stdout, stderr)->
+  exec "expresso -i lib", (err, stdout, stderr)->
     log 'Finished tests', bold
-    onerror err
-    log stdout
     log stderr
-    
-    
-
+    onerror err
 
 task "build", "Compile CoffeeScript to JavaScript", -> build onerror
 task "test", "Compile CoffeeScript to JavaScript and test", ->
