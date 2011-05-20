@@ -97,16 +97,6 @@ class Model extends EventEmitter
       
       async.waterfall(middle, cb)
    
-  ###      
-  Set will either accept arguments in either of these formats
-
-  1. set({key1:val1, key2:val2}, quiet)
-  2. set(key, val, quiet)
-  
-  You want to use (1) to set multiple properties on a single pass
-  because 'saving' is implicit, and thus will cause the changes
-  to be sent up to the server in bulk with socket.io transport
-  ###
   set: () ->
     attribs = key = val = quiet = false
     if typeof arguments[0] != 'object'

@@ -1,16 +1,52 @@
 Model     = require('../lib/model')
+createLink= require('../lib/link').createLink
 should    = require('should')
 io        = require('socket.io')
 http      = require('http')
-WebSocket = require('../node_modules/socket.io/support/node-websocket-client/lib/websocket').WebSocket;
+WebSocket = require('../node_modules/socket.io/support/node-websocket-client/lib/websocket').WebSocket
+encode    = require('../node_modules/socket.io/lib/socket.io/utils').encode
+decode    = require('../node_modules/socket.io/lib/socket.io/utils').decode
 
-server = (port)->
+createServer = (port)->
   server = http.createServer()
   server.listen(port);
   return server;
+  
+createClient = (port)->
+  return wrapClient(new WebSocket('ws://localhost:'+port+'/socket.io/websocket/'))
+  
+wrapClient = (client)->  
+  old = client.emit
+  
+  # lets make emit 'message' behave like a socket.io client
+  client.emit = (event, data)->
+    if (event != 'message' or typeof data == 'object')
+      return old.call(@,event,data)
 
-client = (port)->
-  return new WebSocket('ws://localhost:'+port)
+    # strip off socket.io stuff
+    data = decode(data.toString())[0];
+
+    # grab the frame
+    f = data.substr(0,3)
+  
+    # known frames
+    frames = ['~j~', '~h~']
+  
+    # ignore shit we don't understand
+    if f in frames then data = data.substr(3) else return
+  
+    # gimme that heartbeat, foo
+    if f == '~h~'
+      client.send(encode('~h~' + data))
+      return
+  
+    # parse the payload as json by default
+    data = JSON.parse(data)
+
+    # re-emit
+    client.emit(event, data)
+    
+  return client
 
 josh = new Model({
   name    : 'Joshua Moyers',
@@ -20,30 +56,35 @@ josh = new Model({
 
 module.exports = 
   'client receives updates from server': (before)->
-    server_p = new Model(josh.json())
-    client_p = new Model(josh.json())
+    server_model = new Model(josh.json())
+    client_model = new Model(josh.json())
+    server = createServer(8000)      
+    client = createClient(8000)
     
-    server_socket = io.listen(server(8000))
+    close = ()->
+      server.close()
+      client.close()
+    
+    receive = send = 3
+    
+    changes = ['fred', 'loudly', 'farted']
+    
+    client_model.on 'change', (attribs)->
+      attribs.should.have.property('name', changes[--receive])
+      receive or close()
+    
+    server_socket = io.listen(server)
     
     server_socket.on 'connection', (client)->
-      console.log 'connection'
-      client.send({
-        type: 'update',
-        id  : server_p.id,
-        data: {
-          name: 'Lol'
-        }
-      })
-      # client.on 'message', (data)->
-      #     console.log(data);
-      # 
-      # client.on 'disconnect', ()->
-      #     console.log('client disconnected');
-  
+      createLink(server_model, client)
+      
+      id = setInterval(()->
+        server_model.name = changes[--send]
+        send or clearTimeout(id)
+      ,1000)    
     
-    client_socket = client(8000)
-
-    client.onmessage = (m)->
-      console.log('message')
-      console.log(m);    
+    createLink(client_model, client)
     
+    before ()->
+      send.should.equal(0)
+      receive.should.equal(0)

@@ -1,4 +1,4 @@
 coffee  = require('coffee-script')
 test    = require('../test/test-socket.coffee')
 
-test['client receives updates from server']()
+test['client receives updates from server'](()->)
