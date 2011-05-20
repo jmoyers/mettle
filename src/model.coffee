@@ -29,6 +29,9 @@ class Model extends EventEmitter
     @configure
     
   configure: ()->
+    
+  route: ()->
+    return @constructor.name.toLowerCase() + '/' + @id
         
   use: (attr, fn) -> 
     if typeof attr == 'function'
@@ -38,13 +41,11 @@ class Model extends EventEmitter
     # Modify callback signature so that it takes a value
     # and can modify it on the return cb, for targetted mw
     if attr != 'any'
-      _oldfn = fn
+      old = fn
       fn = (attribs, cb)->
-        _oldfn(attribs[attr], (val)->
+        old attribs[attr], (val)->
           attribs[attr]=val
-          cb(attribs)
-        )
-    
+          cb(attribs)    
     m = 
       type: attr
       fn  : fn

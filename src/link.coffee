@@ -1,21 +1,19 @@
 _ = require('underscore')
 
 module.exports.link = (model, socket)->
-  # prevent cyclic change events
   curr = {}
   
   model.on 'change', (attribs)->
     if _.isEqual(attribs, curr) then return
     
-    update = 
-      type  : 'update',
-      id    : attribs.id,
+    update =
+      route : model.route(),
       data  : attribs
     
     socket.send(update)
 
   socket.on 'message', (message)->
-    if message.type? and message.type == 'update' and message.id == model.id
+    if message.route? and message.route == model.route()
       curr = message.data
       model.set curr, no, ()->
         curr = {}

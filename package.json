@@ -15,6 +15,7 @@
   "devDependencies": {
     "should"        : ">= 0.2.1",
     "expresso"      : ">= 0.7.6",
-    "jquery"        : ">= 1.5.1"
+    "jquery"        : ">= 1.5.1",
+    "express"       : ">= 2.3.5"
   }
 }

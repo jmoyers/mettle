@@ -127,6 +127,10 @@ module.exports =
     beforeEnd ()->
       count.should.equal(2)
     
+  'test default route': (beforeEnd)->
+    m = new Model(josh.json());
+    m.route().should.equal('model/'+m.id)
+    beforeEnd(()->)
   
   'long form asyncronous setter': (beforeEnd)->
     m     = new Model(josh.json())
