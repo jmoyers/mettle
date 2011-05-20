@@ -5,8 +5,8 @@ if not window?
   server        = yes
   async         = require('async')
 
-extend              = _.extend
-keys                = Object.keys
+extend          = _.extend
+keys            = Object.keys
 
 class Model extends EventEmitter
   constructor: (attribs) ->
