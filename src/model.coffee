@@ -29,6 +29,11 @@ class Model extends EventEmitter
     @configure
     
   configure: ()->
+  
+  empty: (attribs)->
+    return _.map attribs, (v, k)->
+      if v == String then return ''
+      if v == Number then return 0
     
   route: ()->
     return @constructor.name.toLowerCase() + '/' + @id
