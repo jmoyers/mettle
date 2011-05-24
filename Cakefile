@@ -32,6 +32,7 @@ test = (cb)->
   log 'Running tests', bold
   exec "expresso -i lib", (err, stdout, stderr)->
     log 'Finished tests', bold
+    log stdout
     log stderr
     onerror err
 

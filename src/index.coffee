@@ -1,3 +1,4 @@
-exports.Controller  = require('./controller')
-exports.Model       = require('./model')
-exports.Link        = require('./link');
+exports.Controller  = require('./controller.js')
+exports.Model       = require('./model.js')
+exports.Link        = require('./link.js')
+exports.PubSub      = require('./pubsub.js')
