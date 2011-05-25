@@ -31,8 +31,8 @@ class PubSub extends EventEmitter
       _(@subscribers[r]).chain()
         .reject (sub)=>
           responders.indexOf(sub) != -1
+        .tap(responders.push)
         .each (sub)=>
-          responders.push(sub)
           sub(message)
           
   sub: (channel, listener)->
