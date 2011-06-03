@@ -1,8 +1,4 @@
 if not window?
-  EventEmitter  = require('events').EventEmitter
-  _             = require('underscore')
-  uuid          = require('node-uuid')
-  async         = require('async')
   server        = yes
 
 class PubSub
@@ -28,11 +24,11 @@ class PubSub
       if typeof curr[branch] == 'object'
         curr = curr[branch]
       
-      trail     = branches.slice(bcounter+1)
+      trail = branches.slice(bcounter+1)
 
       if branch is @wildcard
         freaks = curr.ghosts.concat(curr.wanderers)
-        if bcounter < (numbranches - 1)
+        if bcounter < (numbranches-1)
           for freak in freaks
             if walk(trail.reverse(), freak.markers.reverse())
               listeners.push(freak.listener)
@@ -88,8 +84,6 @@ class PubSub
   sub: @.prototype.addListener
 
   removeListener: (listener)->
-    _.flatten @listeners, (s)->
-      console.log s.toString()
     
     
 if server then module.exports = PubSub
