@@ -22,7 +22,11 @@ class PubSub
     walk = (a, b)->
       for v,i in a
         if a[i] != b[i] then return false
-      return true 
+      return true
+    
+    trail_match = (trail, markers)->
+      diff  = markers.length - trail.length
+      return diff >= 0 and walk(trail.reverse(), markers.reverse())
     
     for branch, bcounter in branches
       if typeof curr[branch] == 'object'
@@ -34,17 +38,21 @@ class PubSub
         freaks = curr.ghosts.concat(curr.wanderers)
         if bcounter < (numbranches - 1)
           for freak in freaks
-            diff  = freak.markers.length - trail.length
-            match = diff >= 0 and walk(trail.reverse(), freak.markers.reverse())
-            if match then listeners.push(freak.listener)
+            if trail_match(trail, freak.markers)
+              listeners.push(freak.listener)
           return listeners
         else
-          return _.pluck(freaks, 'listener')
+          for freak in freaks
+            listeners.push(freak.listener)
+          return listeners
       else if bcounter < (numbranches-1)
-        listeners = listeners.concat(_.pluck(curr.wanderers, 'listener'))
+        for wanderer in curr.wanderers
+          if trail_match(wanderer.markers, trail)
+            listeners.push(wanderer.listener)
       else
-        return listeners.concat(_.pluck(curr.wanderers, 'listener'))
-          .concat(curr.listeners or [])
+        for wanderer in curr.wanderers
+          listeners.push(wanderer.listener)
+        return listeners.concat(curr.listeners or [])
             
   emit: (channel, message)->
     set = @getListeners(channel) or []
@@ -60,6 +68,7 @@ class PubSub
     for p, i in branches
       curr.wanderers  or= []
       curr.ghosts     or= []
+      curr.listeners  or= []
       
       curr.ghosts.push(
         listener: listener
@@ -69,12 +78,15 @@ class PubSub
       if p is @wildcard
         curr.wanderers.push(
           listener: listener
-          markers : branches.slice(i)
+          markers : branches.slice(i+1)
         )
         return
       else 
         curr = (curr[p] or= {})
+
     (curr.listeners or= []).push(listener)
+    curr.wanderers  or= []
+    curr.ghosts     or= []    
   
   on: @.prototype.addListener
   sub: @.prototype.addListener
