@@ -2,44 +2,85 @@ if not window?
   EventEmitter  = require('events').EventEmitter
   _             = require('underscore')
   uuid          = require('node-uuid')
-  server        = yes
   async         = require('async')
-  
-class PubSub extends EventEmitter
+  server        = yes
+
+class PubSub
   constructor:()->
-    @subscribers  = {}
+    @listeners    = {'root':{}}
+    @root         = @listeners['root']
     @delim        = [' ', '.', '/']
     @pattern      = /[\x20. \/]/
+    @wildcard     = '*'
     
-  routes: (channel)->
-    channel = channel.split(@pattern)
+  getListeners: (channel)->
+    branches    = ['root'].concat(channel.split(@pattern))
+    numbranches = branches.length
+    curr        = @listeners
+    listeners   = []
+    
+    walk = (a, b)->
+      for v,i in a
+        if a[i] != b[i] then return false
+      return true 
+    
+    for branch, bcounter in branches
+      if typeof curr[branch] == 'object'
+        curr = curr[branch]
+      
+      trail     = branches.slice(bcounter+1)
 
-    routes = []
-
-    _.each channel, (v, k)->
-      routes[k] = _.reduce channel.slice(k), (memo, next)->
-        return memo + '.' + next
-        
-    return [].concat(routes)
-    
-  pub: (channel, message)->
-    routes = @routes(channel)
-    
-    responders = []
-    
-    _.each routes, (r)=>
-      _(@subscribers[r]).chain()
-        .reject (sub)=>
-          responders.indexOf(sub) != -1
-        .tap(responders.push)
-        .each (sub)=>
-          sub(message)
+      if branch is @wildcard
+        freaks = curr.ghosts.concat(curr.wanderers)
+        if bcounter < (numbranches - 1)
+          for freak in freaks
+            diff  = freak.markers.length - trail.length
+            match = diff >= 0 and walk(trail.reverse(), freak.markers.reverse())
+            if match then listeners.push(freak.listener)
+          return listeners
+        else
+          return _.pluck(freaks, 'listener')
+      else if bcounter < (numbranches-1)
+        listeners = listeners.concat(_.pluck(curr.wanderers, 'listener'))
+      else
+        return listeners.concat(_.pluck(curr.wanderers, 'listener'))
+          .concat(curr.listeners or [])
+            
+  emit: (channel, message)->
+    set = @getListeners(channel) or []
+    for listener in set 
+      listener(message)
+  
+  pub: PubSub::emit
+  trigger: PubSub::emit
           
-  sub: (channel, listener)->
-    @subscribers[channel] = (@subscribers[channel] or= []).concat(listener)
+  addListener: (channel, listener)->
+    branches  = channel.split(@pattern)
+    curr      = (@root or= {})
+    for p, i in branches
+      curr.wanderers  or= []
+      curr.ghosts     or= []
+      
+      curr.ghosts.push(
+        listener: listener
+        markers : branches.slice(i)
+      )
+      
+      if p is @wildcard
+        curr.wanderers.push(
+          listener: listener
+          markers : branches.slice(i)
+        )
+        return
+      else 
+        curr = (curr[p] or= {})
+    (curr.listeners or= []).push(listener)
+  
+  on: @.prototype.addListener
+  sub: @.prototype.addListener
 
-  unsub: (listener)->
-    _.flatten @subscribers, (s)->
+  removeListener: (listener)->
+    _.flatten @listeners, (s)->
       console.log s.toString()
     
     

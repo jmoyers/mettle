@@ -5,13 +5,13 @@ module.exports =
     pb    = new PubSub()
     count = 0
 
-    pb.sub 'test.test', (m)->
-      count++
-      m.should.equal('thing')
+    pb.on 'josh.*', (data)->
+      console.log 'josh.*', data
       
-    pb.unsub()
-
-    pb.pub 'test.test', 'thing'
-
+    pb.on 'josh.name.change', (data)->
+      console.log 'josh.name.change', data
+      
+    pb.emit 'josh', 'should appear once'
+    pb.emit 'josh.name.change', 'should appear twice'
+        
     beforeEnd ()->
-      count.should.equal(1)
