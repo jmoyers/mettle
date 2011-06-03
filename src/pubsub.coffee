@@ -9,24 +9,20 @@ class PubSub
   constructor:()->
     @listeners    = {'root':{}}
     @root         = @listeners['root']
-    @delim        = [' ', '.', '/']
-    @pattern      = /[\x20. \/]/
+    @delim        = '.'
     @wildcard     = '*'
     
   getListeners: (channel)->
-    branches    = ['root'].concat(channel.split(@pattern))
+    branches    = ['root'].concat(channel.split(@delim))
     numbranches = branches.length
     curr        = @listeners
     listeners   = []
     
     walk = (a, b)->
-      for v,i in a
+      len = if a.length > b.length then b.length else a.length
+      for i in [0..len-1]
         if a[i] != b[i] then return false
       return true
-    
-    trail_match = (trail, markers)->
-      diff  = markers.length - trail.length
-      return diff >= 0 and walk(trail.reverse(), markers.reverse())
     
     for branch, bcounter in branches
       if typeof curr[branch] == 'object'
@@ -38,7 +34,7 @@ class PubSub
         freaks = curr.ghosts.concat(curr.wanderers)
         if bcounter < (numbranches - 1)
           for freak in freaks
-            if trail_match(trail, freak.markers)
+            if walk(trail.reverse(), freak.markers.reverse())
               listeners.push(freak.listener)
           return listeners
         else
@@ -47,7 +43,7 @@ class PubSub
           return listeners
       else if bcounter < (numbranches-1)
         for wanderer in curr.wanderers
-          if trail_match(wanderer.markers, trail)
+          if walk(trail.reverse(), wanderer.markers.reverse())
             listeners.push(wanderer.listener)
       else
         for wanderer in curr.wanderers
@@ -63,7 +59,7 @@ class PubSub
   trigger: PubSub::emit
           
   addListener: (channel, listener)->
-    branches  = channel.split(@pattern)
+    branches  = channel.split(@delim)
     curr      = (@root or= {})
     for p, i in branches
       curr.wanderers  or= []
