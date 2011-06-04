@@ -1,0 +1,231 @@
+<html>
+<head>
+   <title>Mettle Docs</title>
+   <!-- Shamelessly lifted from Underscore.js docs page and modified -->
+   <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+   <style>
+   body {
+      font-size: 16px;
+      line-height: 24px;
+      background: white;
+      color: #555;
+      font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+   }
+   ul {
+      list-style: none;
+      padding-left: 0;
+   }
+   div.container {
+      width: 720px;
+      margin: 50px 0 50px 50px;
+   }
+   p {
+      width: 550px;
+   }
+   #documentation p {
+     margin-bottom: 4px;
+   }
+   a, a:visited {
+      padding: 0 2px;
+      text-decoration: none;
+      background: #80B6E5;
+      color: #555;
+   }
+   a:active, a:hover {
+      background: #6C9DC7;
+      color: white;
+   }
+   h1, h2, h3, b, h5, h6 {
+      margin-top: 40px;
+   }
+   b.header {
+      font-size: 18px;
+   }
+   span.alias {
+      font-size: 14px;
+      font-style: italic;
+      margin-left: 20px;
+   }
+   table, tr, td {
+      margin: 0; padding: 0;
+   }
+   td {
+     padding: 2px 12px 2px 0;
+     vertical-align: top;
+   }
+   code, pre, tt {
+      font-family: 'Droid Sans Mono', Monaco, Consolas, "Lucida Console", monospace;
+      font-size: 12px;
+      line-height: 18px;
+      color: #555529;
+   }
+   code {
+      margin-left: 20px;
+   }
+   pre {
+      font-size: 12px;
+      padding: 2px 0 2px 12px;
+      border-left: 6px solid #aaaa99;
+      margin: 0px 0 30px;
+   }
+   </style>
+   </head>
+<body>
+<div class="container"> 
+
+<h1>Mettle</h1> 
+
+<p> 
+   <a href="http://github.com/jmoyers/mettle">Mettle</a> is a small set of
+   mvc related classes that make <em><strong>my</strong></em> experience better when writing complicated
+   javascript applications for both Node.js and the browser. I try to have 100% test 
+   coverage, and not cover things commonly covered by jQuery or your DOM library of choice.
+</p> 
+
+<p> 
+   I'll do my best to follow up on features/bugs reported on the 
+   <a href="http://github.com/jmoyers/mettle/issues">issues page</a>, and I normally hang out 
+   on Freenode in #node.js, nick jmoyers. Feel free to find me on <a href='http://twitter.com/joshuamoyers'>Twitter</a>.
+</p>
+
+<h2>Modules</h2>
+
+<table>
+   <tr>
+      <td><a href='#model'>Model</a></td>
+      <td>Evented property tracking and middleware</td>
+   </tr>
+   <tr>
+      <td><a href="#controller">Controller</a></td>
+      <td>Automatic declarative event delegation</td>
+   </tr>
+   <tr>
+      <td><a href='#model'>PubSub</a></td>
+      <td>Generic channel based events</td>
+   </tr>
+</table>
+
+<p> 
+   <h3 id='Model'>Model</h3> 
+   <p>
+      Actively track a set of attributes. Get all-encompasing or property specific
+      change events. Build plugins/middleware that affects properties values prior to
+      commit. This is useful for validation and loose coupling.
+   </p>
+   <p>
+      <a href='#Model-Model'>Model</a>, 
+      <a href='#Model-use'>use</a>, 
+      <a href='#Model-track'>track</a>, 
+      <a href='#Model-set'>set</a>, 
+      <a href='#Model-get'>get</a>, 
+      <a href='#Model-json'>json</a>, 
+      <a href='#Model-route'>route</a>
+   </p>
+   <ul class='methods'>
+      <li>
+         <b id='Model-Model'>Model(attributes)</b><a href='#Model' style='float: right;'>Model</a>
+         <p>
+            Takes a set of attributes and their values and tracks them, meaning middleware
+            will apply and change events will be fired based on their state. If no 'id' is provided,
+            a guid will be generated for convenience.
+         </p>
+<pre>m = new Model({
+   first : 'Josh',
+   last  : 'Moyers'
+});
+
+m.on('change', function(props){
+   // { id: '97f7b686-56b2-4c21-9eb1-dac797504dab', first: 'Yolanda', last: 'Moyers' }
+});
+
+m.first = 'Yolanda'</pre>
+      </li>
+      <li>
+         <b id='Model-use'>use(attr, fn), use(fn)</b><a href='#Model' style='float: right;'>Model</a>
+         <p>
+            Provides a way to modify the input on a model before it gets 'committed.'
+            These middlewares are ordered, and provide a callback to allow for asyncronous
+            operations, such as database access or a web service call to occur.
+         </p>
+<pre>// Intercept the full attribute hash any time an attribute has changed
+person.use(function(attribs, cb){
+   for (var key in attribs) {
+      attribs[key] = attribs[key].toLowerCase();
+   }
+   cb(attribs)
+});
+
+person.name = 'JOSH';
+// person.name = 'josh'
+
+// Intercept the specific value
+person.use('age', function(val){
+   cb(parseInt(val));
+});
+
+person.age = 15.5;
+// person.age = 15</pre>
+      </li>
+      <li>
+         <b id='Model-track'>track(keys)</b><a href='#Model' style='float: right;'>Model</a>
+         <p>
+            Track additional attributes against the model. Allows for further runtime
+            extension of the model. Also used internally to set up the getters/setters
+            for each tracked property.
+         </p>
+<pre>// We are interested in changes to birthday and status
+person.track(['birthday','status']);
+
+// Subscribe to change events
+person.on('birthday.change', function(val){
+   // 'Today!'
+});
+
+person.birthday = 'Today!';</pre>
+      </li>
+      <li>
+         <b id='Model-set'>set(key, val, cb), set(attrHash, cb)</b><a href='#Model' style='float: right;'>Model</a>
+         <p>
+            Long form setter. If desired support version of javascript doesn't support __defineSetter__,
+            one should use this exclusively. Provides alternative signature for a 'quiet' set (no change events
+            will fire). set(key, val, quiet, cb), set(attrHash, quiet, cb)
+         </p>
+<pre>person.set('name', 'josh', function(props){
+   // All middleware has been applied, all events have been fired
+});</pre>
+      </li>
+      <li>
+         <b id='Model-get'>get(key)</b><a href='#Model' style='float: right;'>Model</a>
+         <p>
+            Straight forward get &mdash; will return the value of anything off the attribute hash that has been committed.
+         </p>
+<pre>person = new Mode({name: 'josh'});
+person.get('name') == person.name;
+=> true</pre>
+      </li>
+      <li>
+         <b id='Model-json'>json()</b><a href='#Model' style='float: right;'>Model</a>
+         <p>
+            Return the tracked property hash for a Model
+         </p>
+<pre>person = new Model({name:'josh', location:'My house'});
+person.json();
+=> { id: '97f7b686-56b2-4c21-9eb1-dac797504dab', name: 'josh', location: 'My house' }</pre>
+      </li>
+      <li>
+         <b id='Model-route'>route()</b><a href='#Model' style='float: right;'>Model</a>
+         <p>
+            This is a method I use to create a channel based on a particular model. That way if I want to hook
+            a model up to a socket.io socket, or create a channel for the Model via PubSub, I can just use route()
+            to create that channel. By default it uses the constructor name plus id.
+         </p>
+<pre>m = new Model({name:'josh', location:'My house'});
+m.json()
+=> { id: '97f7b686-56b2-4c21-9eb1-dac797504dab', name: 'josh', location: 'My house' }
+m.route()
+=> 'model/97f7b686-56b2-4c21-9eb1-dac797504dab'</pre>
+      </li>
+   </ul>
+</p>
+</body>
+</html>

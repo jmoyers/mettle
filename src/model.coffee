@@ -13,6 +13,7 @@ class Model extends EventEmitter
     attribs or= {}
     @attribs or= {}
     
+    # Assign a 
     if not @attribs['id']?
       @attribs['id'] = uuid().toLowerCase()
     
