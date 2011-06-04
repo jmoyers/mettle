@@ -80,8 +80,8 @@ class PubSub
     curr.wanderers  or= []
     curr.ghosts     or= []    
   
-  on: @.prototype.addListener
-  sub: @.prototype.addListener
+  on: PubSub::addListener
+  sub: PubSub::addListener
 
   removeListener: (listener)->
     
