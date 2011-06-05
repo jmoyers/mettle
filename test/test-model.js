@@ -26,7 +26,7 @@ module.exports = {
       m.name = 'Yolanda';
       
       before(function(){
-         cound.should.equal(1);
+         count.should.equal(1);
       });
    }
 }
