@@ -12,66 +12,101 @@ var josh = new Model({
 });
 
 module.exports = {
-   'model change event:': function(before){
-      var m    = new Model(josh.json()),
-         count = 0;
-      
-      m.on('change', function(attribs){
-         attribs.should.have.property('name', 'Yolanda');
-         attribs.should.have.property('phone', '555-555-5555');
-         attribs.should.have.property('age', 26);
-         count++;
-      });
-      
-      m.name = 'Yolanda';
-      
-      before(function(){
-         count.should.equal(1);
-      });
-   },
+   // 'model change event:': function(before){
+   //    var m    = new Model(josh.json()),
+   //       count = 0;
+   //    
+   //    m.on('change', function(attribs){
+   //       attribs.should.have.property('name', 'Yolanda');
+   //       attribs.should.have.property('phone', '555-555-5555');
+   //       attribs.should.have.property('age', 26);
+   //       count++;
+   //    });
+   //    
+   //    m.name = 'Yolanda';
+   //    
+   //    before(function(){
+   //       count.should.equal(1);
+   //    });
+   // },
+   // 
+   // 'attribute change event': function(before){
+   //    var m    = new Model(josh.json()),
+   //       count = 0;
+   // 
+   //    m.on('age.change', function(val){
+   //       val.should.equal(33);
+   //       count++;
+   //    });
+   // 
+   //    m.age = 33;
+   // 
+   //    before(function(){
+   //       count.should.equal(1);
+   //    });
+   // },
+   // 
+   // 'middleware ordering' : function(before){
+   //    var m    = new Model(josh.json()),
+   //       count = 0;
+   //    
+   //    m.use(function(attribs, cb){
+   //       count.should.equal(0);
+   //       count++;
+   //       attribs['name'] = 'Hey';
+   //       cb(attribs);
+   //    });
+   //    
+   //    m.use(function(attribs, cb){
+   //       attribs.should.have.property('name', 'Hey');
+   //       count.should.equal(1);
+   //       count++;
+   //       attribs['name'] = "you";
+   //       cb(attribs);
+   //    });
+   //    
+   //    m.use(function(attribs, cb){
+   //       attribs.should.have.property('name', 'you');
+   //       count.should.equal(2);
+   //       count++;
+   //       attribs['name'] = "guuuuuyyysss";
+   //       cb(attribs);
+   //    });
+   //    
+   //    m.name = 'Kickoff';
+   //    
+   //    before(function(){
+   //       count.should.equal(3);
+   //    });
+   // },
    
-   'attribute change event': function(before){
+   'attribute middleware' : function(before){
       var m    = new Model(josh.json()),
          count = 0;
-
-      m.on('age.change', function(val){
-         val.should.equal(33);
-         count++;
-      });
-
-      m.age = 33;
-
-      before(function(){
-         count.should.equal(1);
-      });
-   },
-   
-   'middleware ordering' : function(before){
-      var m    = new Model(josh.json()),
-         count = 0;
-      
-      m.use(function(attribs, cb){
+         
+      m.use('name', function(val, cb){
          count.should.equal(0);
          count++;
-         attribs['name'] = 'Hey';
-         cb(attribs);
+         val = "Hey";
+         cb(val);
       });
-      
-      m.use(function(attribs, cb){
-         attribs.should.have.property('name', 'Hey');
+
+      m.use('name', function(val, cb){
+         val.should.equal("Hey");
          count.should.equal(1);
          count++;
-         attribs['name'] = "you";
-         cb(attribs);
+         val = "you";
+         cb(val);
       });
-      
-      m.use(function(attribs, cb){
-         attribs.should.have.property('name', 'you');
+
+      m.use('name', function(val, cb){
+         val.should.equal("you");
          count.should.equal(2);
+         val = "guuuuuyssss";
          count++;
-         cb(attribs);
+         cb(val);
       });
-      
+
       m.name = 'Kickoff';
       
       before(function(){
