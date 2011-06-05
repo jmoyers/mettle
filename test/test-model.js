@@ -28,5 +28,54 @@ module.exports = {
       before(function(){
          count.should.equal(1);
       });
+   },
+   
+   'attribute change event': function(before){
+      var m    = new Model(josh.json()),
+         count = 0;
+
+      m.on('age.change', function(val){
+         val.should.equal(33);
+         count++;
+      });
+
+      m.age = 33;
+
+      before(function(){
+         count.should.equal(1);
+      });
+   },
+   
+   'middleware ordering' : function(before){
+      var m    = new Model(josh.json()),
+         count = 0;
+      
+      m.use(function(attribs, cb){
+         count.should.equal(0);
+         count++;
+         attribs['name'] = 'Hey';
+         cb(attribs);
+      });
+      
+      m.use(function(attribs, cb){
+         attribs.should.have.property('name', 'Hey');
+         count.should.equal(1);
+         count++;
+         attribs['name'] = "you";
+         cb(attribs);
+      });
+      
+      m.use(function(attribs, cb){
+         attribs.should.have.property('name', 'you');
+         count.should.equal(2);
+         count++;
+         cb(attribs);
+      });
+      
+      m.name = 'Kickoff';
+      
+      before(function(){
+         count.should.equal(3);
+      });
    }
 }
