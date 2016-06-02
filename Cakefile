@@ -1,37 +1,30 @@
 {spawn, exec} = require("child_process")
 
-# ANSI Terminal Colors.
-bold  = "\033[0;1m"
-red   = "\033[0;31m"
-green = "\033[0;32m"
-reset = "\033[0m"
-
-log = (message, color) ->
-  if not color then color=reset
-  console.log color + message + reset
+log = (message) ->
+  console.log message
   
 onerror = (err) ->
   if err
-    process.stdout.write "#{red}#{err.stack}#{reset}\n"
+    process.stdout.write "#{err.stack}\n"
     process.exit -1
 
 build = (cb)->
-  log 'Building', bold
+  log 'Building'
   op = 2
-  exec "rm -rf lib & coffee -c -l -b -o lib src", (err, stdout)->
+  exec "rm -rf lib & coffee -c -o lib src", (err, stdout)->
     onerror err
-    log 'Compiled src', bold
+    log 'Compiled src'
     -- op or cb()
 
   exec "rm test/*.js & rm -rf lib-cov", (err, stdout)->
     onerror err
-    log 'Reset tests', bold
+    log 'Reset tests'
     -- op or cb()
     
 test = (cb)->
-  log 'Running tests', bold
+  log 'Running tests'
   exec "expresso -i lib", (err, stdout, stderr)->
-    log 'Finished tests', bold
+    log 'Finished tests'
     log stdout
     log stderr
     onerror err

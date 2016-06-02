@@ -1,5 +1,5 @@
-Controller= require('controller')
-Model     = require('model')
+Controller= require('../lib/controller')
+Model     = require('../lib/model')
 should    = require('should')
 $         = require('jquery')
 
