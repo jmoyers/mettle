@@ -1,3 +1,5 @@
+Currently unmaintained. This was an experimental library to explore property change tracking on javascript objects and also learning coffeescript at the height of its popularity. Still think there are some good ideas in here, so leaving it as a reference.
+
 Model
 ===========
 
